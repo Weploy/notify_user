@@ -1,6 +1,6 @@
 class NotifyUser::BaseNotificationsController < ApplicationController
 
-  before_filter :authenticate!, :except => [:unauth_unsubscribe]
+  before_action :authenticate!, :except => [:unauth_unsubscribe]
 
   def index
     collection
