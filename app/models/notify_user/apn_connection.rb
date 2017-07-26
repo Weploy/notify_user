@@ -27,10 +27,14 @@ module NotifyUser
       ENV['APN_ENVIRONMENT'].downcase.to_sym
     end
 
+    def dev?
+      Rails.env.development? || apn_environment == :development
+    end
+
     def setup_connection
       return if Rails.env.test?
 
-      certificate = if Rails.env.development? || apn_environment == :development
+      certificate = if dev?
         Rails.logger.info "Using development gateway. Rails env: #{Rails.env}, APN_ENVIRONMENT: #{apn_environment}"
         development_certificate
       else
@@ -38,7 +42,7 @@ module NotifyUser
         production_certificate
       end
 
-      @connection = Apnotic::Connection.new(cert_path: certificate)
+      @connection = dev? ? Apnotic::Connection.development(cert_path: certificate) : Apnotic::Connection.new(cert_path: certificate)
     end
 
     def development_certificate
