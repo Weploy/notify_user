@@ -1,5 +1,3 @@
-require 'sidekiq'
-
 module NotifyUser
   class BaseNotification < ActiveRecord::Base
     # Override point in case of collisions, plus keeps the table name tidy.

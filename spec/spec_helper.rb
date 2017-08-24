@@ -17,7 +17,6 @@ ENV['RAILS_ROOT'] = File.expand_path("../dummy", __FILE__)
 system 'rake setup' unless File.exist?(ENV['RAILS_ROOT'])
 
 require 'rails/all'
-require 'sidekiq'
 require File.expand_path("#{ENV['RAILS_ROOT']}/config/environment.rb",  __FILE__)
 
 puts "Testing with Rails #{Rails::VERSION::STRING} and Ruby #{RUBY_VERSION}"
@@ -25,11 +24,11 @@ require 'pry'
 require 'rspec/rails'
 require 'capybara/rails'
 require 'factory_girl_rails'
-require 'rspec-sidekiq'
 require 'awesome_print'
 require 'timecop'
 require 'shoulda-matchers'
 require 'test_after_commit'
+require 'que'
 
 Rails.application.routes.default_url_options[:host]= 'localhost:5000'
 

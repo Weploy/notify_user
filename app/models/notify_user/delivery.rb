@@ -18,7 +18,7 @@ module NotifyUser
     private
 
     def deliver!
-      DeliveryWorker.perform_in(deliver_in, id)
+      DeliveryWorker.enqueue(id, run_at: deliver_in.seconds.from_now)
     end
   end
 end
