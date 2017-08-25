@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
 
   s.add_dependency "rails", ">= 4.0"
-  s.add_dependency "sidekiq", ">= 3.0.0"
+  s.add_dependency "que"
   s.add_dependency "kaminari"
   s.add_dependency "active_model_serializers", "~> 0.10.0"
   s.add_dependency "pubnub"
@@ -27,7 +27,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "pg"
   s.add_development_dependency "rspec-rails"
-  s.add_development_dependency "rspec-sidekiq"
   s.add_development_dependency "factory_girl_rails"
   s.add_development_dependency "capybara"
   s.add_development_dependency "awesome_print"

@@ -1,8 +1,6 @@
 module NotifyUser
-  class DeliveryWorker
-    include Sidekiq::Worker
-
-    def perform(delivery_id)
+  class DeliveryWorker < Que::Job
+    def run(delivery_id)
       delivery = Delivery.find(delivery_id)
 
       if delivery.notification.read?
