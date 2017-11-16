@@ -1,3 +1,5 @@
+require 'que'
+
 module NotifyUser
   class DeliveryWorker < Que::Job
     def run(delivery_id)

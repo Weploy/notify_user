@@ -39,6 +39,8 @@ module NotifyUser
       end
 
       @connection = Apnotic::Connection.new(cert_path: certificate)
+      @connection.on(:error) { |exception| p "Exception has been raised: #{exception}" }
+      @connection
     end
 
     def development_certificate
