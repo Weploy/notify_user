@@ -13,7 +13,7 @@ module NotifyUser
         aggregator = Aggregator.new(notification, options[:aggregate_per])
         return if aggregator.has_pending_deliveries?
         # Only deliver if the target has the required device
-        return if notification.target.devices.none? do |device|
+        next if notification.target.devices.none? do |device|
           device.platform == options[:platform]
         end
 
