@@ -4,13 +4,16 @@ module NotifyUser
   describe Scheduler do
     before :each do
       @user = create(:user)
+      @devices = [double('Device', owner: @user, platform: 'ios'), double('Device', owner: @user, platform: 'android')]
+      allow(@user).to receive(:devices) { @devices }
+
     end
 
     describe '#schedule' do
       context 'one channel' do
         before :each do
           allow(NewPostNotification).to receive(:channels) {{
-              apns: { aggregate_per: [0, 3, 10, 30, 60] }
+              apns: { aggregate_per: [0, 3, 10, 30, 60], platform: 'ios' }
           }}
         end
 
@@ -65,8 +68,8 @@ module NotifyUser
       context 'multiple channels' do
         before :each do
           allow(NewPostNotification).to receive(:channels) {{
-              apns: { aggregate_per: [0, 3, 10, 30, 60] },
-              gcm: { aggregate_per: [0, 3, 10, 30, 60] }
+              apns: { aggregate_per: [0, 3, 10, 30, 60], platform: 'ios' },
+              gcm: { aggregate_per: [0, 3, 10, 30, 60], platform: 'android' }
           }}
         end
 

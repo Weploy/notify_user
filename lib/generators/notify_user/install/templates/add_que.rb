@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require 'que'
 
-class AddQue < ActiveRecord::Migration
+class AddQue < ActiveRecord::Migration[4.2]
   def self.up
     # The current version as of this migration's creation.
     Que.migrate! :version => 3

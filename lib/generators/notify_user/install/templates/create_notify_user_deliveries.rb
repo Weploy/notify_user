@@ -1,4 +1,4 @@
-class CreateNotifyUserDeliveries < ActiveRecord::Migration
+class CreateNotifyUserDeliveries < ActiveRecord::Migration[4.2]
   def change
     create_table :notify_user_deliveries do |t|
       t.datetime :sent_at

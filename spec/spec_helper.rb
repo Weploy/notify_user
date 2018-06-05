@@ -27,8 +27,8 @@ require 'factory_girl_rails'
 require 'awesome_print'
 require 'timecop'
 require 'shoulda-matchers'
-require 'test_after_commit'
 require 'que'
+require 'bootsnap'
 
 Rails.application.routes.default_url_options[:host]= 'localhost:5000'
 

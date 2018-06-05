@@ -46,7 +46,9 @@ class NotifyUser::BaseNotificationsController < ApplicationController
   end
 
   def unsubscribe_from_object
-    case params[:subscription][:unsubscribe]
+    raise "unsubscribe field required" unless [true, 'true', false, 'false'].include?(params[:subscription][:unsubscribe])
+    unsubscribe = params[:subscription][:unsubscribe] == 'true' || params[:subscription][:unsubscribe] == true
+    case unsubscribe
     when true
       NotifyUser::Unsubscribe.unsubscribe(@user, params[:subscription][:type], params[:subscription][:group_id])
     when false
@@ -69,7 +71,7 @@ class NotifyUser::BaseNotificationsController < ApplicationController
   end
 
   def redirect_logic(notification)
-    render :text => "redirect setup goes here"
+    render(plain: "redirect setup goes here")
   end
 
   def unsubscribe
@@ -126,12 +128,12 @@ class NotifyUser::BaseNotificationsController < ApplicationController
         @user = user_hash.target
         unsubscribe = NotifyUser::Unsubscribe.create(target: @user, type: params[:type])
         user_hash.deactivate
-        return render :text => "successfully unsubscribed from #{params[:type]} notifications"
+        return render plain: "successfully unsubscribed from #{params[:type]} notifications"
       else
-        return render :text => "invalid token"
+        return render plain: "invalid token"
       end
     end
-    return render :text => "Something went wrong please try again later"
+    return render plain: "Something went wrong please try again later"
   end
 
   def subscribe

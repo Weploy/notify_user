@@ -1,4 +1,4 @@
-class CreateNotifyUserNotifications < ActiveRecord::Migration
+class CreateNotifyUserNotifications < ActiveRecord::Migration[4.2]
   def change
     create_table :notify_user_notifications do |t|
       t.string :type

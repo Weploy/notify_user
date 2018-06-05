@@ -20,11 +20,9 @@ module NotifyUser
       it 'schedules a delivery worker for the channel' do
         delivery = build(:delivery, deliver_in: 0, notification: @notification, channel: 'apns', id: 3749)
 
-        TestAfterCommit.with_commits(true) do
-          Timecop.freeze do
-            expect(NotifyUser::DeliveryWorker).to receive(:enqueue).with(3749, run_at: 0.seconds.from_now)
-            delivery.save
-          end
+        Timecop.freeze do
+          expect(NotifyUser::DeliveryWorker).to receive(:enqueue).with(3749, run_at: 0.seconds.from_now)
+          delivery.save
         end
       end
     end
