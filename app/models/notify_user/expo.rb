@@ -29,32 +29,20 @@ module NotifyUser
 
     def send_notifications
       return false unless devices.any?
+      success = true
       devices.each do |device|
-        response = client.publish(
-          [Factories::Expo.build(@notification, device.token, @options)]
-        )
-
-        raise 'Timeout sending a push notification' unless response
-
-        log_response_to_delivery(device.id, response)
-
-        if response.status == '200'
-          success = true
-          response.body['data'].each do |result|
-            if result['status'] == 'error'
-              success = false
-              device.destroy if result.dig('details', 'error') == 'DeviceNotRegistered'
-              Rails.logger.info("Expo error: #{result.dig('details', 'error')} - #{result['message']}")
-            end
-          end
-          return success
-        else
-          response.body['errors'].each do |error|
-            Rails.logger.info("Expo error: #{error['code']} - #{error['message']}")
-          end
-          return false
+        begin
+          client.publish([Factories::Expo.build(@notification, device.token, @options)])
+        rescue Exponent::Push::DeviceNotRegisteredError => error
+          success = false
+          device.destroy
+          Rails.logger.info("Expo error: #{error.message}")
+        rescue Exponent::Push::Error => error
+          success = false
+          Rails.logger.info("Expo error: #{error.message}")
         end
       end
+      success
     end
   end
 end
