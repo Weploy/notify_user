@@ -1,4 +1,4 @@
-class CreateNotifyUserUserHashes < ActiveRecord::Migration
+class CreateNotifyUserUserHashes < ActiveRecord::Migration[4.2]
   def change
     create_table :notify_user_user_hashes do |t|
       t.string :type

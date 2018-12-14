@@ -5,7 +5,7 @@ module NotifyUser
     describe 'notification_email' do
       let(:user) { build(:user) }
       let(:notification) { NewPostNotification.new(target: user) }
-      let(:mailer) { NotificationMailer.send(:new, 'notification_email', notification, ActionMailerChannel.default_options) }
+      let(:mailer) { NotificationMailer.new }
       let(:mail) { mailer.notification_email(notification, ActionMailerChannel.default_options) }
 
       before :each do

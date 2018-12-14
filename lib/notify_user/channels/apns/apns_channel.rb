@@ -7,18 +7,28 @@ class ApnsChannel
   	  }
   	end
 
-    def deliver(notification, options={})
+    def deliver(notification_id, options={})
+      if notification_id.is_a? NotifyUser::BaseNotification
+        raise RuntimeError, "Must pass notification ids, not the notification itself"
+      end
+
+      notification = NotifyUser::BaseNotification.find(notification_id)
+
       devices = fetch_devices(notification, options[:device_method])
 
-      NotifyUser::Apns.new([notification], devices[:ios], options).push if devices[:ios].any?
-      NotifyUser::Gcm.new([notification], devices[:android], options).push if devices[:android].any?
+      NotifyUser::Apns.new([notification], devices, options).push if devices.any?
     end
 
-    def deliver_aggregated(notifications, options={})
+    def deliver_aggregated(notification_ids, options={})
+      if notification_ids.first.is_a? NotifyUser::BaseNotification
+        raise RuntimeError, "Must pass notification ids, not the notifications themselves"
+      end
+
+      notifications = NotifyUser::BaseNotification.where(id: notification_ids)
+
       devices = fetch_devices(notifications.first, options[:device_method])
 
-      NotifyUser::Apns.new(notifications, devices[:ios], options).push if devices[:ios].any?
-      NotifyUser::Gcm.new(notifications, devices[:android], options).push if devices[:android].any?
+      NotifyUser::Apns.new(notifications, devices, options).push if devices.any?
     end
 
     private
@@ -27,10 +37,11 @@ class ApnsChannel
       device_method ||= :devices
       devices = notification.target.send(device_method)
 
-      { ios: devices.ios.to_a, android: devices.android.to_a }
+      devices.ios.to_a
     rescue
-      Rails.logger.info "Notification target, #{notification.target.class}, does not respond to the method, #{device_method}."
-      { ios: [], android: [] }
+      [].tap do
+        Rails.logger.info "Notification target, #{notification.target.class}, does not respond to the method, #{device_method}."
+      end
     end
   end
 end

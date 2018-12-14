@@ -4,29 +4,13 @@ require 'support/test_gcm_connection'
 module NotifyUser
   describe Gcm, type: :model do
     let(:user) { create(:user) }
-    let(:notification) { create(:notify_user_notification, target: user) }
+    let(:notification) { create(:notify_user_notification, params: {}, target: user) }
     let(:user_tokens) { ['a_token'] }
 
     before :each do
       allow_any_instance_of(Gcm).to receive(:device_tokens) { user_tokens }
       @client = TestGCMConnection.new
       allow_any_instance_of(Gcm).to receive(:client).and_return(@client)
-    end
-
-    describe 'initialisation' do
-      it 'initialises the correct push options' do
-        @gcm = Gcm.new([notification], [], {})
-
-        expect(@gcm.push_options).to include(
-          data: {
-            notification_id: notification.id,
-            message: notification.mobile_message,
-            type: notification.class.name,
-            unread_count: 1,
-            custom_data: notification.params
-          }
-        )
-      end
     end
 
     describe 'push' do
@@ -62,6 +46,23 @@ module NotifyUser
           allow(@gcm).to receive(:device_tokens) { multiple_tokens }
           expect(@client).to receive(:send).once
             .with(multiple_tokens, kind_of(Hash))
+          @gcm.push
+        end
+      end
+
+      describe 'Delivery logging' do
+        before do
+          @mock_status = instance_double("status", status: "200", body: {})
+          @delivery = instance_double('Delivery')
+          @device = create_device_double
+
+          allow(@gcm).to receive(:device_tokens) { [@device.token] }
+          allow(@gcm).to receive(:delivery) { @delivery }
+        end
+
+        it 'calls the log method on delivery' do
+          expect(@delivery).to receive(:log_response_for_device).with('gcm', anything)
+
           @gcm.push
         end
       end

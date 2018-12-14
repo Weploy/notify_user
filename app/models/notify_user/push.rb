@@ -1,8 +1,5 @@
 module NotifyUser
   class Push
-    SYMBOL_NAMES_SIZE = 10
-    PAYLOAD_LIMIT = 255
-
     def initialize(notifications, devices, options)
       @notifications = notifications
       @notification = notifications.first
@@ -13,7 +10,20 @@ module NotifyUser
 
     # Sends push notification:
     def push
-      raise "Base APNS class should not be used."
+      raise "Base Push class should not be used."
+    end
+
+    def delivery_for_notification(channel)
+      Delivery.find_by(notification: @notification, channel: channel)
+    end
+
+    def log_response_to_delivery(device, response)
+      return unless delivery.present?
+      delivery.log_response_for_device(device, response)
+    end
+
+    def formatted_response
+      raise "Formatted Response not defined"
     end
 
     private
@@ -22,16 +32,6 @@ module NotifyUser
 
     def device_tokens
       @device_tokens = @devices.map(&:token)
-    end
-
-    # Calculates the bytes already used:
-    def used_space
-      used_space = SYMBOL_NAMES_SIZE + @notification.id.size + @notification.created_at.to_time.to_i.size +
-                    @notification.type.size
-
-      used_space += @notification.params[:action_id].size if @notification.params[:action_id]
-
-      used_space
     end
   end
 end

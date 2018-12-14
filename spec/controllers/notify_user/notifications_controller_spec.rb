@@ -61,23 +61,28 @@ module NotifyUser
         expect(response.body).to have_content('Mr. Blobby')
       end
 
-      it 'reading a notification marks it as read and takes to redirect action' do
-        get :read, id: notification.id
-        @notification = BaseNotification.where(id: notification.id).first
-        expect(@notification.state).to eq 'read'
+      it 'reading a notification marks it as read' do
+        expect do
+          get :read, params: { id: notification.id }
+          notification.reload
+        end.to change(notification, :read_at).from(nil)
+      end
+
+      it 'reading a notification takes to redirect action' do
+        get :read, params: { id: notification.id }
         expect(response.body).to have_content('set redirect logic')
       end
 
       it "reading a notification twice doesn't throw an exception" do
+        notification.update_attributes(read_at: Time.zone.now)
         expect do
-          get :read, id: notification.id
-          get :read, id: notification.id
+          get :read, params: { id: notification.id }
         end.not_to raise_error
       end
 
       it 'marks all unread messages as read' do
         get :mark_all
-        notifications = BaseNotification.for_target(user).where('state IN (?)', '["pending","sent"]')
+        notifications = BaseNotification.for_target(user).where('read_at IS NULL')
         expect(notifications.length).to eq 0
       end
     end
@@ -85,13 +90,13 @@ module NotifyUser
     describe 'PUT notifications/unsubscribe_from_object' do
       it 'unsubscribe returns 201' do
         expect(Unsubscribe).to receive(:unsubscribe)
-        put :unsubscribe_from_object, format: :json, subscription: { type: 'NewPostNotification', group_id: 1, unsubscribe: true }
+        put :unsubscribe_from_object, format: :json, params: { subscription: { type: 'NewPostNotification', group_id: 1, unsubscribe: true }}
         expect(response.response_code).to eq 201
       end
 
       it 'subscribe returns 201' do
         expect(Unsubscribe).to receive(:subscribe)
-        put :unsubscribe_from_object, format: :json, subscription: { type: 'NewPostNotification', group_id: 1, unsubscribe: false }
+        put :unsubscribe_from_object, format: :json, params: { subscription: { type: 'NewPostNotification', group_id: 1, unsubscribe: false }}
         expect(response.response_code).to eq 201
       end
     end
@@ -104,13 +109,13 @@ module NotifyUser
       end
 
       it 'marks notifications as read' do
-        put :mark_read, ids: [notification.id]
+        put :mark_read, params: { ids: [notification.id] }
         notification.reload
         expect(notification.read?).to eq true
       end
 
       it 'returns updated notifications' do
-        put :mark_read, ids: [notification.id]
+        put :mark_read, params: { ids: [notification.id] }
         expect(json[:notifications][0]).not_to be_nil
       end
     end
@@ -124,37 +129,41 @@ module NotifyUser
 
       it 'endpoint for updating notification subscription statuses' do
         expect(Unsubscribe.has_unsubscribed_from(user, 'NewPostNotification')).to eq []
-        put :subscriptions, types: [{
-          type: 'NewPostNotification',
-          status: '0'
-        }]
+        put :subscriptions, params: {
+          types: [{
+            type: 'NewPostNotification',
+            status: '0'
+          }]
+        }
         expect(Unsubscribe.has_unsubscribed_from(user, 'NewPostNotification')).not_to eq []
       end
 
       it 'endpoint for updating notification subscription statuses passing 1 does nothing' do
         expect(Unsubscribe.has_unsubscribed_from(user, 'NewPostNotification')).to eq []
-        put :subscriptions, types: [{
-          type: 'NewPostNotification',
-          status: '1'
-        }]
+        put :subscriptions, params: {
+          types: [{
+            type: 'NewPostNotification',
+            status: '1'
+          }]
+        }
         expect(Unsubscribe.has_unsubscribed_from(user, 'NewPostNotification')).to eq []
       end
 
       it 'unsubscribing from notification type' do
-        get :unsubscribe, type: 'NewPostNotification'
+        get :unsubscribe, params: { type: 'NewPostNotification' }
         expect(Unsubscribe.last.type).to eq 'NewPostNotification'
       end
 
       it 'subscribing deletes the unsubscribe object' do
         # lack of unsubscribe object implies the user is subscribed
         Unsubscribe.create(target: user, type: 'NewPostNotification')
-        get :subscribe, type: 'NewPostNotification'
+        get :subscribe, params: { type: 'NewPostNotification' }
         expect(Unsubscribe.all).to eq []
       end
 
       it 'verifies user token before unsubscribe then deactivates that token' do
         user_hash = notification.generate_unsubscribe_hash
-        get :unauth_unsubscribe, type: 'NewPostNotification', token: user_hash.token
+        get :unauth_unsubscribe, params: { type: 'NewPostNotification', token: user_hash.token }
 
         user_hash = UserHash.last
         expect(user_hash.active).to eq false

@@ -9,6 +9,8 @@ class NotifyUser::InstallGenerator < Rails::Generators::Base
     copy_migration "create_notify_user_notifications"
     copy_migration "create_notify_user_unsubscribes"
     copy_migration "create_notify_user_user_hashes"
+    copy_migration "create_notify_user_deliveries"
+    copy_migration "add_que"
 
     puts "Installation successful. You can now run:"
     puts "  rake db:migrate"

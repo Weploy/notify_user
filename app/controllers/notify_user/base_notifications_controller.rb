@@ -1,6 +1,6 @@
 class NotifyUser::BaseNotificationsController < ApplicationController
 
-  before_filter :authenticate!, :except => [:unauth_unsubscribe]
+  before_action :authenticate!, :except => [:unauth_unsubscribe]
 
   def index
     collection
@@ -21,20 +21,20 @@ class NotifyUser::BaseNotificationsController < ApplicationController
   def respond_to_method
     respond_to do |format|
       format.html
-      format.json {render :json => @notifications, meta: { pagination: { per_page: @notifications.limit_value, total_pages: @notifications.total_pages, total_objects: @notifications.total_count } }}
+      format.json {render json: @notifications, each_serializer: NotifyUser::NotificationSerializer, adapter: :json, meta: { pagination: { per_page: @notifications.limit_value, total_pages: @notifications.total_pages, total_objects: @notifications.total_count } }}
     end
   end
 
   def mark_read
     @notifications = NotifyUser::BaseNotification.for_target(@user).where('id IN (?)', params[:ids])
-    @notifications.update_all(state: :read)
-    render json: @notifications
+    @notifications.update_all(read_at: Time.zone.now)
+    render json: @notifications, each_serializer: NotifyUser::NotificationSerializer, adapter: :json
   end
 
   def mark_all
-    @notifications = NotifyUser::BaseNotification.for_target(@user).where('state != ?', 'read')
-    @notifications.update_all(state: :read)
-    render json: @notifications
+    @notifications = NotifyUser::BaseNotification.for_target(@user).where('read_at IS NULL')
+    @notifications.update_all(read_at: Time.zone.now)
+    render json: @notifications, each_serializer: NotifyUser::NotificationSerializer, adapter: :json
   end
 
   def notifications_count
@@ -46,7 +46,9 @@ class NotifyUser::BaseNotificationsController < ApplicationController
   end
 
   def unsubscribe_from_object
-    case params[:subscription][:unsubscribe]
+    raise "unsubscribe field required" unless [true, 'true', false, 'false'].include?(params[:subscription][:unsubscribe])
+    unsubscribe = params[:subscription][:unsubscribe] == 'true' || params[:subscription][:unsubscribe] == true
+    case unsubscribe
     when true
       NotifyUser::Unsubscribe.unsubscribe(@user, params[:subscription][:type], params[:subscription][:group_id])
     when false
@@ -58,7 +60,7 @@ class NotifyUser::BaseNotificationsController < ApplicationController
     render json: {status: "OK"}, status: 201
   end
 
-  #get
+  # GET
   def read
     @notification = NotifyUser::BaseNotification.for_target(@user).where('id = ?', params[:id]).first
     unless @notification.read?
@@ -69,7 +71,7 @@ class NotifyUser::BaseNotificationsController < ApplicationController
   end
 
   def redirect_logic(notification)
-    render :text => "redirect setup goes here"
+    render(plain: "redirect setup goes here")
   end
 
   def unsubscribe
@@ -126,12 +128,12 @@ class NotifyUser::BaseNotificationsController < ApplicationController
         @user = user_hash.target
         unsubscribe = NotifyUser::Unsubscribe.create(target: @user, type: params[:type])
         user_hash.deactivate
-        return render :text => "successfully unsubscribed from #{params[:type]} notifications"
+        return render plain: "successfully unsubscribed from #{params[:type]} notifications"
       else
-        return render :text => "invalid token"
+        return render plain: "invalid token"
       end
     end
-    return render :text => "Something went wrong please try again later"
+    return render plain: "Something went wrong please try again later"
   end
 
   def subscribe

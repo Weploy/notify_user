@@ -17,7 +17,7 @@ module NotifyUser
 
     def self.for_target(target)
       where(target_id: target.id)
-      .where(target_type: target.class.base_class)
+      .where(target_type: target.class.base_class.name)
     end
 
     def self.toggle_status(target, type)
@@ -30,7 +30,7 @@ module NotifyUser
 
     def self.unsubscribe(target, type, group_id=nil)
       ## creates unsubscribe object if it doesn't already exist
-      unless exists?(target_id: target.id, target_type: target.class.base_class,
+      unless exists?(target_id: target.id, target_type: target.class.base_class.name,
         type: type, group_id: group_id)
         create(target: target, type: type, group_id: group_id)
       end
@@ -39,22 +39,22 @@ module NotifyUser
     def self.subscribe(target, type, group_id=nil)
       #deletes unsubscribe object in essence subscribing a user
       where(target_id: target.id)
-      .where(target_type: target.class.base_class)
+      .where(target_type: target.class.base_class.name)
       .where(type: type, group_id: group_id).destroy_all
     end
 
     ## checks to see if you've unsubscribed from the overall notification type
     ## before checking you've unsubscribed from the specific group_id
     def self.has_unsubscribed_from?(target, type, group_id=nil, channel_name=nil)
-      return true if where(target_id: target.id, target_type: target.class.base_class).where(type: type).any?
-      return true if where(target_id: target.id, target_type: target.class.base_class, type: type, group_id: group_id).any? if group_id
-      return true if where(target_id: target.id, target_type: target.class.base_class, type: channel_name).any? if channel_name
+      return true if where(target_id: target.id, target_type: target.class.base_class.name).where(type: type).any?
+      return true if where(target_id: target.id, target_type: target.class.base_class.name, type: type, group_id: group_id).any? if group_id
+      return true if where(target_id: target.id, target_type: target.class.base_class.name, type: channel_name).any? if channel_name
       false
     end
 
     def self.has_unsubscribed_from(target, type, group_id=nil)
       where(target_id: target.id)
-      .where(target_type: target.class.base_class)
+      .where(target_type: target.class.base_class.name)
       .where(type: type, group_id: group_id)
     end
 

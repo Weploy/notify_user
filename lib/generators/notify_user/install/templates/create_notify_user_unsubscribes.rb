@@ -1,4 +1,4 @@
-class CreateNotifyUserUnsubscribes < ActiveRecord::Migration
+class CreateNotifyUserUnsubscribes < ActiveRecord::Migration[4.2]
   def change
     create_table :notify_user_unsubscribes do |t|
       t.string :type
