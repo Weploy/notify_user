@@ -28,7 +28,7 @@ module NotifyUser
     attr_accessor :delivery
 
     def build_notification
-      return Factories::Gcm.build(@notification, @options)
+      Factories::Gcm.build(@notification, @options)
     end
 
     def send_notifications
@@ -38,8 +38,16 @@ module NotifyUser
       response = client.send(device_tokens, notification_data)
 
       log_response_to_delivery('gcm', response)
-      # should be checking for errors in the response here
-      return true
+
+      Device.where(
+        token: not_registered_device_tokens(response)
+      ).destroy_all
+
+      true
+    end
+
+    def not_registered_device_tokens(response)
+      response.fetch(:not_registered_ids, [])
     end
   end
 end
