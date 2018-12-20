@@ -4,7 +4,7 @@ module NotifyUser
   class Gcm < Push
     PAYLOAD_LIMIT = 4096
 
-    attr_accessor :client, :push_options
+    attr_accessor :push_options
 
     def initialize(notifications, devices, options)
       super(notifications, devices, options)
@@ -28,18 +28,27 @@ module NotifyUser
     attr_accessor :delivery
 
     def build_notification
-      return Factories::Gcm.build(@notification, @options)
+      if @options[:silent]
+        Factories::Gcm.build_silent(@notification, @options)
+      else
+        Factories::Gcm.build(@notification, @options)
+      end
     end
 
     def send_notifications
       return unless device_tokens.any?
-      notification_data = build_notification()
+      notification_data = build_notification
 
       response = client.send(device_tokens, notification_data)
+      not_registered_tokens = response.fetch(:not_registered_ids, [])
 
       log_response_to_delivery('gcm', response)
-      # should be checking for errors in the response here
-      return true
+
+      @devices.each do |device|
+        device.destroy if not_registered_tokens.include?(device.token)
+      end
+
+      true
     end
   end
 end
