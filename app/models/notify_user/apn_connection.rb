@@ -30,15 +30,14 @@ module NotifyUser
     def setup_connection
       return if Rails.env.test?
 
-      certificate = if Rails.env.development? || apn_environment == :development
+      if Rails.env.development? || apn_environment == :development
         Rails.logger.info "Using development gateway. Rails env: #{Rails.env}, APN_ENVIRONMENT: #{apn_environment}"
-        development_certificate
+        @connection = Apnotic::Connection.development(cert_path: development_certificate)
       else
         Rails.logger.info "Using production gateway. Rails env: #{Rails.env}, APN_ENVIRONMENT: #{apn_environment}"
-        production_certificate
+        @connection = Apnotic::Connection.new(cert_path: production_certificate)
       end
 
-      @connection = Apnotic::Connection.new(cert_path: certificate)
       @connection.on(:error) { |exception| p "Exception has been raised: #{exception}" }
       @connection
     end
