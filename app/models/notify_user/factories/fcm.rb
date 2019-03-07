@@ -1,6 +1,6 @@
 module NotifyUser
   module Factories
-    module Gcm
+    module Fcm
       include Base
 
       def self.build(notification, options = {})

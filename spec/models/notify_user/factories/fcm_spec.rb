@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe NotifyUser::Factories::Gcm do
+describe NotifyUser::Factories::Fcm do
   describe '#present' do
     before :each do
       user = create(:user)
@@ -9,27 +9,27 @@ describe NotifyUser::Factories::Gcm do
 
     describe '.build' do
       before :each do
-        @gcm = described_class.build(@notification, {})
+        @fcm = described_class.build(@notification, {})
       end
 
       it 'sets the notification id' do
-        expect(@gcm[:data][:notification_id]).to eq @notification.id
+        expect(@fcm[:data][:notification_id]).to eq @notification.id
       end
 
       it 'sets the mobile message' do
-        expect(@gcm[:data][:message]).to eq 'New Post Notification happened with {}'
+        expect(@fcm[:data][:message]).to eq 'New Post Notification happened with {}'
       end
 
       it 'sets the badge to 1' do
-        expect(@gcm[:data][:unread_count]).to eq 1
+        expect(@fcm[:data][:unread_count]).to eq 1
       end
 
       it 'sets the notification category' do
-        expect(@gcm[:data][:type]).to eq 'NewPostNotification'
+        expect(@fcm[:data][:type]).to eq 'NewPostNotification'
       end
 
       it 'sets the custom data with params' do
-        expect(@gcm[:data][:custom_data]).to eq({})
+        expect(@fcm[:data][:custom_data]).to eq({})
       end
     end
   end

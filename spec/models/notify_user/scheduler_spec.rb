@@ -69,7 +69,7 @@ module NotifyUser
         before :each do
           allow(NewPostNotification).to receive(:channels) {{
               apns: { aggregate_per: [0, 3, 10, 30, 60], platform: 'ios' },
-              gcm: { aggregate_per: [0, 3, 10, 30, 60], platform: 'android' }
+              fcm: { aggregate_per: [0, 3, 10, 30, 60], platform: 'android' }
           }}
         end
 
