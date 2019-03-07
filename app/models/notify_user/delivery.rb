@@ -12,7 +12,7 @@ module NotifyUser
 
     def log_response_for_device(device_id, response)
       current_responses = responses || {}
-      if channel == 'gcm'
+      if channel == 'gcm' || channel == 'fcm'
         self.update(responses: current_responses.merge({ device_id => { status: response[:status_code], body: response[:body] } }))
       else
         self.update(responses: current_responses.merge({ device_id => { status: response.status, body: response.body } }))

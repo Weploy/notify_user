@@ -27,8 +27,8 @@ describe ApnsChannel do
       described_class.deliver(notification.id)
     end
 
-    it 'doesnt make use of GCM' do
-      expect(NotifyUser::Gcm).not_to receive(:new)
+    it 'doesnt make use of FCM' do
+      expect(NotifyUser::Fcm).not_to receive(:new)
 
       described_class.deliver(notification.id)
     end
